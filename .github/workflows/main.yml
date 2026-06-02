@@ -1,125 +1,106 @@
 name: Build CTMZ_Toolchain
 
 on:
-push:
-pull_request:
+  push:
+  pull_request:
 
 jobs:
-build:
-name: Build on ${{ matrix.os-name }}
-runs-on: ${{ matrix.runner }}
+  build:
+    name: Build on ${{ matrix.os-name }}
+    runs-on: ${{ matrix.runner }}
 
-strategy:
-  fail-fast: false
-  matrix:
-    include:
-      - os-name: Linux
-        runner: ubuntu-latest
-        artifact: CTMZ_Toolchain-linux.tar.gz
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os-name: Linux
+            runner: ubuntu-latest
+            artifact: CTMZ_Toolchain-linux.tar.gz
 
-      - os-name: Windows
-        runner: windows-latest
-        artifact: CTMZ_Toolchain-windows.tar.gz
+          - os-name: Windows
+            runner: windows-latest
+            artifact: CTMZ_Toolchain-windows.tar.gz
 
-steps:
-  - name: Checkout source
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-  #
-  # Linux dependencies
-  #
-  - name: Install Linux dependencies
-    if: runner.os == 'Linux'
-    run: |
-      sudo apt-get update
-      sudo apt-get install -y \
-        make texinfo bison flex unzip \
-        gcc g++ curl python3 expat \
-        diffutils libgmp-dev libmpfr-dev \
-        libmpc-dev libisl-dev libc++-dev \
-        libboost-all-dev
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            make texinfo bison flex unzip \
+            gcc g++ curl python3 expat \
+            diffutils libgmp-dev libmpfr-dev \
+            libmpc-dev libisl-dev libc++-dev \
+            libboost-all-dev
 
-  #
-  # Windows dependencies
-  #
-  - name: Setup MSYS2
-    if: runner.os == 'Windows'
-    uses: msys2/setup-msys2@v2
-    with:
-      msystem: MINGW64
-      update: true
-      install: >-
-        make
-        texinfo
-        bison
-        flex
-        unzip
-        mingw-w64-x86_64-gcc
-        mingw-w64-x86_64-curl
-        mingw-w64-x86_64-python
-        mingw-w64-x86_64-expat
-        mingw-w64-x86_64-diffutils
-        mingw-w64-x86_64-gmp
-        mingw-w64-x86_64-mpfr
-        mingw-w64-x86_64-mpc
-        mingw-w64-x86_64-isl
-        mingw-w64-x86_64-boost
+      - name: Setup MSYS2
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            texinfo
+            bison
+            flex
+            unzip
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-expat
+            mingw-w64-x86_64-diffutils
+            mingw-w64-x86_64-gmp
+            mingw-w64-x86_64-mpfr
+            mingw-w64-x86_64-mpc
+            mingw-w64-x86_64-isl
+            mingw-w64-x86_64-boost
 
-  #
-  # Build
-  #
-  - name: Build toolchain (Linux)
-    if: runner.os == 'Linux'
-    run: make
+      - name: Build toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: make
 
-  - name: Build toolchain (Windows)
-    if: runner.os == 'Windows'
-    shell: msys2 {0}
-    run: make
+      - name: Build toolchain (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: make
 
-  #
-  # Package
-  #
-  - name: Package Linux
-    if: runner.os == 'Linux'
-    run: |
-      tar -czvf CTMZ_Toolchain-linux.tar.gz CTMZ_Toolchain
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        run: tar -czf CTMZ_Toolchain-linux.tar.gz CTMZ_Toolchain
 
-  - name: Package Windows
-    if: runner.os == 'Windows'
-    shell: msys2 {0}
-    run: |
-      tar -czvf CTMZ_Toolchain-windows.tar.gz CTMZ_Toolchain
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: tar -czf CTMZ_Toolchain-windows.tar.gz CTMZ_Toolchain
 
-  #
-  # Upload artifacts
-  #
-  - name: Upload artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: ${{ matrix.os-name }}
-      path: ${{ matrix.artifact }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os-name }}
+          path: ${{ matrix.artifact }}
 
-release:
-name: Create Release
-needs: build
-runs-on: ubuntu-latest
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
 
-if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-steps:
-  - name: Download artifacts
-    uses: actions/download-artifact@v4
-    with:
-      path: artifacts
-
-  - name: Create GitHub Release
-    uses: softprops/action-gh-release@v2
-    with:
-      tag_name: ${{ github.ref_name }}
-      files: |
-        artifacts/Linux/CTMZ_Toolchain-linux.tar.gz
-        artifacts/Windows/CTMZ_Toolchain-windows.tar.gz
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            artifacts/Linux/CTMZ_Toolchain-linux.tar.gz
+            artifacts/Windows/CTMZ_Toolchain-windows.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
