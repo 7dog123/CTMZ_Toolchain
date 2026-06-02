@@ -8,7 +8,7 @@ PATH := $(PATH):$(CTMZ_HOME)/Toolchain-M68K/bin:$(CTMZ_HOME)/Toolchain-Z80/bin
 FILE_ARCHIVER = unzip
 
 # Binutils-GDB
-LINK_BINUTILS-GDB = https://codeload.github.com/bminor/binutils-gdb/zip/master
+LINK_BINUTILS-GDB = https://codeload.github.com/gnutools/binutils-gdb/zip/master
 DOWN_BINUTILS-GDB = binutils-gdb.zip
 PATH_BINUTILS-GDB = binutils-gdb-master
 
@@ -18,9 +18,9 @@ DOWN_GCC = GCC.zip
 PATH_GCC = gcc-master
 
 # Newlib
-LINK_NEWLIB = https://codeload.github.com/bminor/newlib/zip/master
-DOWN_NEWLIB = Newlib.zip
-PATH_NEWLIB = newlib-master
+LINK_NEWLIB = https://codeload.github.com/PragsPud/newlib-git-mirror/zip/master
+DOWN_NEWLIB = newlib-git-mirror.zip
+PATH_NEWLIB = newlib-git-mirror-master
 
 # SDCC
 LINK_SDCC = https://codeload.github.com/swegener/sdcc/zip/master
