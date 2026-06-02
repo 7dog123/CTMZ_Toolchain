@@ -70,12 +70,18 @@ jobs:
 
       - name: Package Linux
         if: runner.os == 'Linux'
-        run: tar -czf CTMZ_Toolchain-linux.tar.gz CTMZ_Toolchain
+        run: |
+          mkdir -pv CTMZ_Toolchain
+          cp -R Toolchain-M68K Toolchain-Z80 CTMZ_Toolchain
+          tar -czf CTMZ_Toolchain-linux.tar.gz CTMZ_Toolchain
 
       - name: Package Windows
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        run: tar -czf CTMZ_Toolchain-windows.tar.gz CTMZ_Toolchain
+        run: |
+          mkdir -pv CTMZ_Toolchain
+          cp -R Toolchain-M68K Toolchain-Z80 CTMZ_Toolchain
+          tar -czf CTMZ_Toolchain-windows.tar.gz CTMZ_Toolchain
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
